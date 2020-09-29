@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <glad/glad.h>
 #include "raytracer.h"
 
 #define BENCHMARK
@@ -11,6 +12,7 @@
 
 void* bitmap_memory;
 BITMAPINFO bitmap_info;
+HGLRC gl_context;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT u_msg, WPARAM w_param, LPARAM l_param);
 
@@ -57,7 +59,7 @@ int WINAPI WinMain(HINSTANCE h_instance, HINSTANCE h_prev_instance, PSTR lp_cmd_
     bitmap_info.bmiHeader.biBitCount = 32;
     bitmap_info.bmiHeader.biCompression = BI_RGB;
 
-    create_raytracing_context(width, height);
+    create_raytracing_buffer(width, height);
 
     #ifdef BENCHMARK
     int step = 0;
@@ -97,7 +99,7 @@ int WINAPI WinMain(HINSTANCE h_instance, HINSTANCE h_prev_instance, PSTR lp_cmd_
         #endif
     }
         
-
+    wglDeleteContext(gl_context);
     return 0;
 }
 
@@ -121,16 +123,69 @@ void DrawPixels(HWND hwnd) {
             SRCCOPY
         );
     }
+    
+
+    //glViewport(0, 0, width, height);
+    //glClear(GL_COLOR_BUFFER_BIT);
+    //glClearColor(1, 0, 0, 1);
+    //glFinish();
+
     EndPaint(hwnd, &ps);
+    
+    //SwapBuffers(hDC);
+}
+
+bool CreateGLContext(HWND hwnd) {
+    PIXELFORMATDESCRIPTOR pfd =
+        {
+            sizeof(PIXELFORMATDESCRIPTOR),
+            1,
+            PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+            PFD_TYPE_RGBA,
+            32,
+            0, 0, 0, 0, 0, 0,
+            0,
+            0,
+            0,
+            0, 0, 0, 0,
+            24,
+            8,
+            0,
+            PFD_MAIN_PLANE,
+            0,
+            0, 0, 0
+        };
+
+    HDC hdc = GetDC(hwnd);
+
+    int pixel_format;
+    pixel_format = ChoosePixelFormat(hdc, &pfd); 
+    SetPixelFormat(hdc, pixel_format, &pfd);
+
+    gl_context = wglCreateContext(hdc);
+    wglMakeCurrent (hdc, gl_context);
+
+    if(!gladLoadGL()) {
+        PostQuitMessage(0);
+        return false;
+    }
+
+    return true;
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT u_msg, WPARAM w_param, LPARAM l_param) {
     switch(u_msg) {
-        case WM_DESTROY:
-            PostQuitMessage(0);
+        case WM_CREATE:
+            if(!CreateGLContext(hwnd)) {
+                PostQuitMessage(0);
+            }
+            //MessageBoxA(0,(char*)glGetString(GL_VERSION), "OPENGL VERSION",0);
             return 0;
         case WM_PAINT:
             DrawPixels(hwnd);
+            return 0;
+        case WM_DESTROY:
+            PostQuitMessage(0);
             return 0;
     }
 

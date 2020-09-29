@@ -79,13 +79,11 @@ struct Camera {
     Vector3 origin, lower_left_corner, horizontal, vertical;
     Vector3 u, v, w;
 
-    Camera(Vector3 position, Vector3 look_at, Vector3 up, float aspect_r, float vertical_fov, float aperture) : aspect_ratio(aspect_r) {
+    Camera(Vector3 position, Vector3 look_at, Vector3 up, float aspect_r, float vertical_fov, float aperture, float focus_dist) : aspect_ratio(aspect_r) {
         auto theta = deg2rad(vertical_fov);
         auto h = tan(theta/2);
         auto viewport_height = 2.0f * h;
         auto viewport_width = aspect_ratio * viewport_height;
-
-        auto focus_dist = length(position - look_at);
 
         w = unit_vector(position - look_at);
         u = unit_vector(cross(up, w));

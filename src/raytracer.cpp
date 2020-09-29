@@ -63,81 +63,78 @@ Vector3 trace_ray(const Ray& ray, const std::vector<Sphere>& objects, const std:
 }
 
 void run_raytracer(const int image_width, const int image_height, uint8_t* image_data) {
-    const int samples_per_pixel = 16;
     const auto aspect_ratio = (float) image_width / image_height;
-    Camera camera(Vector3(0,1,1), Vector3(0,0,-1), Vector3(0,1,0), aspect_ratio, 90, 0);
+    Camera camera(Vector3(0,1,1), Vector3(0,0,-1), Vector3(0,1,0), aspect_ratio, 90, 0.1f, 1.5f);
 
     // Scene setup
     std::vector<Sphere> objects;
     std::vector<Material> materials;
+    {
+        Material mat_lambert_yellowish;
+        mat_lambert_yellowish.albedo = Vector3(0.8f, 0.8f, 0.0f);
+        mat_lambert_yellowish.type = MaterialType::LAMBERTIAN;
 
-    Material mat_lambert_yellowish;
-    mat_lambert_yellowish.albedo = Vector3(0.8f, 0.8f, 0.0f);
-    mat_lambert_yellowish.type = MaterialType::LAMBERTIAN;
+        Material mat_lambert_reddish;
+        mat_lambert_reddish.albedo = Vector3(0.7f, 0.3f, 0.3f);
+        mat_lambert_reddish.type = MaterialType::LAMBERTIAN;
 
-    Material mat_lambert_reddish;
-    mat_lambert_reddish.albedo = Vector3(0.7f, 0.3f, 0.3f);
-    mat_lambert_reddish.type = MaterialType::LAMBERTIAN;
+        Material mat_lambert_greenish;
+        mat_lambert_greenish.albedo = Vector3(0.3f, 0.7f, 0.3f);
+        mat_lambert_greenish.type = MaterialType::LAMBERTIAN;
 
-    Material mat_lambert_greenish;
-    mat_lambert_greenish.albedo = Vector3(0.3f, 0.7f, 0.3f);
-    mat_lambert_greenish.type = MaterialType::LAMBERTIAN;
+        Material mat_lambert_bluish;
+        mat_lambert_bluish.albedo = Vector3(0.3f, 0.3f, 0.7f);
+        mat_lambert_bluish.type = MaterialType::LAMBERTIAN;
 
-    Material mat_lambert_bluish;
-    mat_lambert_bluish.albedo = Vector3(0.3f, 0.3f, 0.7f);
-    mat_lambert_bluish.type = MaterialType::LAMBERTIAN;
+        Material mat_mirror;
+        mat_mirror.albedo = Vector3(0.8f, 0.8f, 0.8f);
+        mat_mirror.type = MaterialType::METAL;
+        mat_mirror.fuzziness = 0.0f;
 
-    Material mat_mirror;
-    mat_mirror.albedo = Vector3(0.8f, 0.8f, 0.8f);
-    mat_mirror.type = MaterialType::METAL;
-    mat_mirror.fuzziness = 0.0f;
+        Material mat_less_fuzzy_metal;
+        mat_less_fuzzy_metal.albedo = Vector3(0.8f, 0.8f, 0.8f);
+        mat_less_fuzzy_metal.type = MaterialType::METAL;
+        mat_less_fuzzy_metal.fuzziness = 0.3f;
 
-    Material mat_less_fuzzy_metal;
-    mat_less_fuzzy_metal.albedo = Vector3(0.8f, 0.8f, 0.8f);
-    mat_less_fuzzy_metal.type = MaterialType::METAL;
-    mat_less_fuzzy_metal.fuzziness = 0.3f;
+        Material mat_less_fuzzy_pink_metal;
+        mat_less_fuzzy_pink_metal.albedo = Vector3(0.6f, 0.0f, 0.3f);
+        mat_less_fuzzy_pink_metal.type = MaterialType::METAL;
+        mat_less_fuzzy_pink_metal.fuzziness = 0.5f;
 
-    Material mat_less_fuzzy_pink_metal;
-    mat_less_fuzzy_pink_metal.albedo = Vector3(0.6f, 0.0f, 0.3f);
-    mat_less_fuzzy_pink_metal.type = MaterialType::METAL;
-    mat_less_fuzzy_pink_metal.fuzziness = 0.5f;
+        Material mat_fuzzy_metal;
+        mat_fuzzy_metal.albedo = Vector3(0.3f, 0.6f, 0.8f);
+        mat_fuzzy_metal.type = MaterialType::METAL;
+        mat_fuzzy_metal.fuzziness = 0.7f;
 
-    Material mat_fuzzy_metal;
-    mat_fuzzy_metal.albedo = Vector3(0.3f, 0.6f, 0.8f);
-    mat_fuzzy_metal.type = MaterialType::METAL;
-    mat_fuzzy_metal.fuzziness = 0.7f;
+        objects.push_back(Sphere(Vector3(0,-100.5f,-1), 100));
+        materials.push_back(mat_mirror);
 
-    objects.push_back(Sphere(Vector3(0,-100.5f,-1), 100));
-    materials.push_back(mat_mirror);
+        objects.push_back(Sphere(Vector3(0,0,-1), 0.5f));
+        materials.push_back(mat_mirror);
 
-    objects.push_back(Sphere(Vector3(0,0,-1), 0.5f));
-    materials.push_back(mat_mirror);
+        objects.push_back(Sphere(Vector3(0,1,-1), 0.5f));
+        materials.push_back(mat_mirror);
 
-    objects.push_back(Sphere(Vector3(0,1,-1), 0.5f));
-    materials.push_back(mat_mirror);
+        objects.push_back(Sphere(Vector3(-1.2f,0,-1.5f), 0.5f));
+        materials.push_back(mat_lambert_yellowish);
 
-    objects.push_back(Sphere(Vector3(-1.2f,0,-1.5f), 0.5f));
-    materials.push_back(mat_lambert_yellowish);
+        objects.push_back(Sphere(Vector3(1.2f,0,-1), 0.5f));
+        materials.push_back(mat_lambert_reddish);
 
-    objects.push_back(Sphere(Vector3(1.2f,0,-1), 0.5f));
-    materials.push_back(mat_lambert_reddish);
+        objects.push_back(Sphere(Vector3(0.5f,-0.2,0), 0.3f));
+        materials.push_back(mat_lambert_greenish);
 
-    objects.push_back(Sphere(Vector3(0.5f,-0.2,0), 0.3f));
-    materials.push_back(mat_lambert_greenish);
+        objects.push_back(Sphere(Vector3(1.4,-0.2,0), 0.3));
+        materials.push_back(mat_fuzzy_metal);
 
-    objects.push_back(Sphere(Vector3(1.4,-0.2,0), 0.3));
-    materials.push_back(mat_fuzzy_metal);
+        objects.push_back(Sphere(Vector3(-0.8f,-0.2,-0.2), 0.3f));
+        materials.push_back(mat_lambert_bluish);
 
-    objects.push_back(Sphere(Vector3(-0.8f,-0.2,-0.2), 0.3f));
-    materials.push_back(mat_lambert_bluish);
-
-    objects.push_back(Sphere(Vector3(-0.2f,-0.4,0), 0.1f));
-    materials.push_back(mat_less_fuzzy_pink_metal);
-    
-    // Render loop
-    int counter = 0;
-    
-    #pragma omp parallel for schedule(dynamic) //num_threads(12) //for now, num thread is not really required
+        objects.push_back(Sphere(Vector3(-0.2f,-0.4,0), 0.1f));
+        materials.push_back(mat_less_fuzzy_pink_metal);
+    }
+        
+    #pragma omp parallel for schedule(dynamic)
     for(int y = image_height - 1; y >= 0; y--) {
         for(int x = 0; x < image_width; x++) {
             auto& color = previous_render[y * image_width + x];
@@ -165,7 +162,7 @@ void run_raytracer(const int image_width, const int image_height, uint8_t* image
     //save_image("test.ppm", image_width, image_height, image_data);
 }
 
-void create_raytracing_context(const int image_width, const int image_height) {
+void create_raytracing_buffer(const int image_width, const int image_height) {
     previous_render = static_cast<Vector3*>(malloc(image_width * image_height * sizeof(Vector3)));
     memset(previous_render, 0, image_width * image_height * sizeof(Vector3));
 }

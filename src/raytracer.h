@@ -8,6 +8,6 @@
 #include <stdint.h>
 
 void run_raytracer(const int image_width, const int image_height, uint8_t* image_data);
-void create_raytracing_context(const int image_width, const int image_height);
+void create_raytracing_buffer(const int image_width, const int image_height);
 
 #endif
