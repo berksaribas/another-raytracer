@@ -98,18 +98,18 @@ struct Camera {
     }
 };
 
-
-
 inline int clamp(int num, int min, int max) {
-    if(num < min) return min;
-    if(num > max) return max;
-    return num;
+    int temp1 = num > min ? num : min;
+    int temp2 = temp1 < max ? temp1 : max;
+    return temp2;
 }
+
 inline float clamp(float num, float min, float max) {
-    if(num < min) return min;
-    if(num > max) return max;
-    return num;
+    float temp1 = num > min ? num : min;
+    float temp2 = temp1 < max ? temp1 : max;
+    return temp2;
 }
+
 inline float random_float() { return rand() / (RAND_MAX + 1.0f); }
 inline float random_float(float min, float max) { return min + (max-min) * random_float(); }
 inline Vector3 random_vector3() { return Vector3(random_float(), random_float(), random_float()); }

@@ -7,7 +7,8 @@
 enum MaterialType {
     LAMBERTIAN,
     METAL,
-    DIELECTRIC
+    DIELECTRIC,
+    LIGHT
 };
 
 struct Material {
@@ -20,4 +21,6 @@ struct Material {
 };
 
 bool scatter(const Material& material, const Ray& incoming_ray, const Hit& hit, Vector3& attenuation, Ray& outgoing_ray);
+Vector3 emit(const Material& material);
+
 #endif

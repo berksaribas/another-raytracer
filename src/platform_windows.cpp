@@ -33,8 +33,8 @@ int WINAPI WinMain(HINSTANCE h_instance, HINSTANCE h_prev_instance, PSTR lp_cmd_
         WS_OVERLAPPEDWINDOW|WS_VISIBLE,
         CW_USEDEFAULT, //x
         CW_USEDEFAULT, //y
-        CW_USEDEFAULT, //width
-        CW_USEDEFAULT, //height
+        1938, //width
+        1127, //height
         NULL,
         NULL,
         h_instance,

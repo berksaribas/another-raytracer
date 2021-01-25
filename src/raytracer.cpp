@@ -1,5 +1,4 @@
 #include "raytracer.h"
-#include <vector>
 
 Vector3* previous_render;
 int render_run = 1;
@@ -51,25 +50,42 @@ Vector3 trace_ray(const Ray& ray, const std::vector<Sphere>& objects, const std:
     if(check_object_hit(objects, ray, 0.001f, FLT_MAX, hit)) {
         Ray outgoing_ray;
         Vector3 attenuation;
+        Vector3 emitted = emit(materials[hit.object_index]);
+
         if(scatter(materials[hit.object_index], ray, hit, attenuation, outgoing_ray)) {
             auto ray_color = trace_ray(outgoing_ray, objects, materials, depth - 1);
-            return Vector3(ray_color.x * attenuation.x, ray_color.y * attenuation.y, ray_color.z * attenuation.z);
+            return emitted + Vector3(ray_color.x * attenuation.x, ray_color.y * attenuation.y, ray_color.z * attenuation.z);
         }
-        return Vector3(0, 0, 0);
+        return emitted;
     }
 
-    auto t = 0.5f * (unit_vector(ray.direction).y + 1.0f);
-    return lerp(Vector3(1.0f, 1.0f, 1.0f), Vector3(0.5f, 0.7f, 1.0f), t);
+    return Vector3(0, 0, 0);
 }
 
 void run_raytracer(const int image_width, const int image_height, uint8_t* image_data) {
     const auto aspect_ratio = (float) image_width / image_height;
-    Camera camera(Vector3(0,1,1), Vector3(0,0,-1), Vector3(0,1,0), aspect_ratio, 90, 0.1f, 1.5f);
+    Camera camera(Vector3(0,1,1), Vector3(0,0,-1), Vector3(0,1,0), aspect_ratio, 90, 0.0f, 1.5f);
 
     // Scene setup
     std::vector<Sphere> objects;
     std::vector<Material> materials;
     {
+        Material mat_light;
+        mat_light.albedo = Vector3(10, 10, 10);
+        mat_light.type = MaterialType::LIGHT;
+
+        Material mat_light_red;
+        mat_light_red.albedo = Vector3(10, 0, 0);
+        mat_light_red.type = MaterialType::LIGHT;
+
+        Material mat_light_green;
+        mat_light_green.albedo = Vector3(0, 10, 0);
+        mat_light_green.type = MaterialType::LIGHT;
+
+        Material mat_light_blue;
+        mat_light_blue.albedo = Vector3(0, 0, 10);
+        mat_light_blue.type = MaterialType::LIGHT;
+
         Material mat_lambert_yellowish;
         mat_lambert_yellowish.albedo = Vector3(0.8f, 0.8f, 0.0f);
         mat_lambert_yellowish.type = MaterialType::LAMBERTIAN;
@@ -106,8 +122,23 @@ void run_raytracer(const int image_width, const int image_height, uint8_t* image
         mat_fuzzy_metal.type = MaterialType::METAL;
         mat_fuzzy_metal.fuzziness = 0.7f;
 
+        objects.push_back(Sphere(Vector3(0,40,0), 10));
+        materials.push_back(mat_light_red);
+
+        objects.push_back(Sphere(Vector3(0,40,-40), 10));
+        materials.push_back(mat_light_green);
+        
+        objects.push_back(Sphere(Vector3(0,40,40), 10));
+        materials.push_back(mat_light_blue);
+
+        //objects.push_back(Sphere(Vector3(40,40,0), 10));
+        //materials.push_back(mat_light);
+//
+        //objects.push_back(Sphere(Vector3(-40,40,0), 10));
+        //materials.push_back(mat_light);
+        
         objects.push_back(Sphere(Vector3(0,-100.5f,-1), 100));
-        materials.push_back(mat_mirror);
+        materials.push_back(mat_fuzzy_metal);
 
         objects.push_back(Sphere(Vector3(0,0,-1), 0.5f));
         materials.push_back(mat_mirror);
@@ -132,6 +163,11 @@ void run_raytracer(const int image_width, const int image_height, uint8_t* image
 
         objects.push_back(Sphere(Vector3(-0.2f,-0.4,0), 0.1f));
         materials.push_back(mat_less_fuzzy_pink_metal);
+
+        for(int i = 0; i < 100; i++) {
+            objects.push_back(Sphere((random_vector3() * 2 + Vector3(-1, -1, -1)) * 10, 0.3f));
+            materials.push_back(mat_less_fuzzy_metal);
+        }
     }
         
     #pragma omp parallel for schedule(dynamic)
@@ -159,7 +195,6 @@ void run_raytracer(const int image_width, const int image_height, uint8_t* image
     }
 
     render_run ++;
-    //save_image("test.ppm", image_width, image_height, image_data);
 }
 
 void create_raytracing_buffer(const int image_width, const int image_height) {

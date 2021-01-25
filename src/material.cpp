@@ -41,8 +41,29 @@ bool scatter(const Material& material, const Ray& incoming_ray, const Hit& hit, 
             return metal_scater(material, incoming_ray, hit, attenuation, outgoing_ray);
         case DIELECTRIC:
             return dielectric_scater(material, incoming_ray, hit, attenuation, outgoing_ray);
+        case LIGHT:
+            return false;
         default:
             break;
     }
     return false;
+}
+
+Vector3 emit(const Material& material) {
+    Vector3 default_color(0, 0, 0);
+
+    switch(material.type) {
+        case LAMBERTIAN:
+            break;
+        case METAL:
+            break;
+        case DIELECTRIC:
+            break;
+        case LIGHT:
+            return material.albedo;
+        default:
+            break;
+    }
+
+    return default_color;
 }
